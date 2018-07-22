@@ -48,13 +48,16 @@ class WebSocketProtocol(WebSocketServerProtocol):
                 self.client_addr = None
                 self.server_addr = None
 
+            self.client_scheme = 'wss' if self.factory.isSecure else 'ws'
+
             if self.server.proxy_forwarded_address_header:
                 self.client_addr, self.client_scheme = parse_x_forwarded_for(
                     dict(self.clean_headers),
                     self.server.proxy_forwarded_address_header,
                     self.server.proxy_forwarded_port_header,
                     self.server.proxy_forwarded_proto_header,
-                    self.client_addr
+                    self.client_addr,
+                    self.client_scheme
                 )
             # Decode websocket subprotocol options
             subprotocols = []
@@ -71,6 +74,7 @@ class WebSocketProtocol(WebSocketServerProtocol):
                 "type": "websocket",
                 "path": unquote(self.path.decode("ascii")),
                 "headers": self.clean_headers,
+                "scheme": self.client_scheme,
                 "query_string": self._raw_query_string,  # Passed by HTTP protocol
                 "client": self.client_addr,
                 "server": self.server_addr,
